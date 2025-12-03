@@ -57,7 +57,7 @@ def run_script_in_folder(folder_path):
     return result
 
 
-dataset = load_dataset("PrismaX/SGI-DryExperiment")
+dataset = load_dataset("InternScience/SGI-DryExperiment")
 save_dir = './task_3_dry_experiment/codes'
 os.makedirs(save_dir, exist_ok=True)
 

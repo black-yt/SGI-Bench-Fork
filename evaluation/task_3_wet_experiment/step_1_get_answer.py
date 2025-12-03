@@ -5,7 +5,7 @@ sys.path.append('.')
 from utils import LLM, AnswerPaser, muti_thread, extract_final_answer
 from datasets import load_dataset
 
-dataset = load_dataset("PrismaX/SGI-WetExperiment")
+dataset = load_dataset("InternScience/SGI-WetExperiment")
 save_dir = './task_3_wet_experiment/logs'
 model_name = 'gpt-4.1'
 

@@ -11,7 +11,7 @@ from utils import VLM, muti_thread
 save_dir = './task_4_experimental_reasoning/logs'
 model_name = 'gpt-4.1'
 
-dataset = load_dataset("PrismaX/SGI-Reasoning")
+dataset = load_dataset("InternScience/SGI-Reasoning")
 with open(os.path.join(save_dir, f"{model_name.replace('/', '_')}.json"), 'r', encoding='utf-8') as json_file:
     model_answer = json.load(json_file)
 for idx, q in enumerate(dataset['test']):

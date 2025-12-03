@@ -7,7 +7,7 @@ sys.path.append('.')
 from utils import VLM, muti_thread, extract_final_answer
 from datasets import load_dataset
 
-dataset = load_dataset("PrismaX/SGI-Reasoning")
+dataset = load_dataset("InternScience/SGI-Reasoning")
 save_dir = './task_4_experimental_reasoning/logs'
 model_name = 'gpt-4.1'
 
