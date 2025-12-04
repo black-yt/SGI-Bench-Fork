@@ -15,7 +15,7 @@
   <img src="assets/teaser.png" alt="SGI Overview" width="850">
 </p>
 
-Scientist-aligned benchmark for evaluating Scientific General Intelligence (SGI) across the full inquiry cycle: Deliberation, Conception, Action, and Perception. The benchmark spans 10 disciplines and ~1,000 expert‑curated samples inspired by Science’s 125 Big Questions, with an agentic evaluation framework and multi‑metric protocol.
+Scientist-aligned benchmark for evaluating Scientific General Intelligence (SGI) across the full inquiry cycle: Deliberation, Conception, Action, and Perception. The benchmark spans 10 disciplines and more than 1,000 expert‑curated samples inspired by Science’s 125 Big Questions, with an agentic evaluation framework and multi‑metric protocol.
 
 ---
 
