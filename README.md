@@ -115,9 +115,12 @@ TTRL converts open‑ended ideation into measurable test‑time optimization and
 ## 🔥 Quick Start
 
 ```bash
+git clone https://github.com/InternScience/SGI-Bench.git
+cd SGI-Bench/evaluation
+
 export OPENAI_API_KEY="xxxxx"
 export OPENAI_BASE_URL="xxxxx"
-cd evaluation
+
 conda create -n sgi python=3.13.7
 conda activate sgi
 pip install -r requirements.txt
