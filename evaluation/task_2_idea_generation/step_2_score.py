@@ -76,7 +76,6 @@ def node_text_similarity(G1, G2):
         
         return jaccard_sim
     except Exception as e:
-        logging.error(f"node_text_similarity: Error calculating similarity: {e}")
         return 0.0
 
 
@@ -101,7 +100,6 @@ def graph_similarity(dict1, dict2, alpha=0.5):
             G2.add_node(str(k), text=v)
         
         if len(G1.nodes()) == 0 or len(G2.nodes()) == 0:
-            logging.warning("graph_similarity: One of the graphs is missing necessary keys.")
             return 0.0
         
         def process_order_items(order_list, graph, step_keys):
@@ -120,7 +118,7 @@ def graph_similarity(dict1, dict2, alpha=0.5):
                                 graph.add_edge(src, dst)
                                 edges_added = True
                         except Exception as e:
-                            logging.warning(f"graph_similarity: Failed to add edge {o} - {e}")
+                            pass
             return edges_added
         
         step_keys1 = [str(k) for k in dict1["ImplementationSteps"].keys()]
@@ -151,7 +149,6 @@ def graph_similarity(dict1, dict2, alpha=0.5):
         return alpha * edge_sim + (1 - alpha) * text_sim
     
     except Exception as e:
-        logging.error(f"graph_similarity: Error calculating similarity: {e}")
         return 0.0
 
 
@@ -574,7 +571,6 @@ class ImprovedIdeaEvaluator:
             return min(penalty, 10.0)
         
         except Exception as e:
-            logging.error(f"Error calculating semantic repetition: {e}")
             return 0.0
     
     def LLM_multi_rounds(self, llm_judges):
@@ -639,10 +635,10 @@ class ImprovedIdeaEvaluator:
         
         return {
             "individual_scores": {
-                "novelty_objective": round(self.scores["novelty_objective"], 2),
-                "effectiveness_objective": round(self.scores["effectiveness_objective"], 2),
-                "feasibility_objective": round(self.scores["feasibility_objective"], 2),
-                "detailedness_objective": round(self.scores["detailedness_objective"], 2),
+                "novelty_objective": float(round(self.scores["novelty_objective"], 2)),
+                "effectiveness_objective": float(round(self.scores["effectiveness_objective"], 2)),
+                "feasibility_objective": float(round(self.scores["feasibility_objective"], 2)),
+                "detailedness_objective": float(round(self.scores["detailedness_objective"], 2)),
                 "novelty_subjective": self.scores["novelty_subjective"],
                 "effectiveness_subjective": self.scores["effectiveness_subjective"],  
                 "detailedness_subjective": self.scores["detailedness_subjective"],
@@ -669,8 +665,6 @@ def evaluate_single_idea(ques_dict):
         return output
 
 def main():
-    
-    
     input_path = os.path.join(save_dir, f"{model_name}.json")
     with open(input_path, 'r', encoding='utf-8') as f:
         model_answers = json.load(f)
@@ -679,7 +673,6 @@ def main():
     
     inp_list = [{'ques_dict': ques} for ques in model_answers]
     out_list = muti_thread(inp_list, evaluate_single_idea, 100)
-    print(out_list)
     
     output_path = os.path.join(save_dir, f"{model_name}_evaluation.json")
     with open(output_path, 'w', encoding='utf-8') as f:
