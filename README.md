@@ -5,7 +5,7 @@
 </div>
 
 <p align="center">
-  <a href="https://arxiv.org/abs/2401.xxxxx"><b>Paper</b></a> ·
+  <a href="https://internscience.github.io/SGI-Page/paper.pdf"><b>Paper</b></a> ·
   <a href="https://github.com/InternScience/SGI-Bench"><b>GitHub</b></a> ·
   <a href="https://internscience.github.io/SGI-Page/"><b>Page</b></a> ·
   <a href="https://huggingface.co/collections/InternScience/sgi-bench"><b>HuggingFace</b></a>
@@ -184,10 +184,5 @@ python task_4_experimental_reasoning/step_2_score.py
 ## Citation
 
 ```
-@article{sgi2025,
-  title={SGI-Bench: Scientific Intelligence Benchmark via Scientist-Aligned Workflows},
-  author={Research Team},
-  journal={arXiv preprint arXiv:2401.xxxxx},
-  year={2025}
-}
+Coming soon...
 ```
