@@ -317,9 +317,10 @@ def compare_ideas_with_voting(original_idea_data, generated_idea_data, context=N
         "all_evaluations": all_evaluations
     }
     
+
 class ImprovedIdeaEvaluator:
-    
-    def __init__(self, generated_idea, original_data: dict):
+    def __init__(self, idx: str, generated_idea: dict, original_data: dict):
+        self.idx = idx
         self.original_data = original_data
         self.original_data["Idea"]=self.original_data.get("core_idea", "")
         self.original_data["RelatedWork"]=ast.literal_eval(self.original_data.get("related_work", {}))
@@ -634,6 +635,7 @@ class ImprovedIdeaEvaluator:
         self.merge_scores()
         
         return {
+            "idx": self.idx,
             "individual_scores": {
                 "novelty_objective": float(round(self.scores["novelty_objective"], 2)),
                 "effectiveness_objective": float(round(self.scores["effectiveness_objective"], 2)),
@@ -649,6 +651,7 @@ class ImprovedIdeaEvaluator:
 def evaluate_single_idea(ques_dict):
     try:
         evaluator = ImprovedIdeaEvaluator(
+            idx = ques_dict["idx"],
             original_data=ques_dict["original_data"],
             generated_idea=ques_dict["generated_data"],
         )
