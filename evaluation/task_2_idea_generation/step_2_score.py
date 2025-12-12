@@ -27,7 +27,7 @@ if len(sys.argv) > 1:
     discipline = sys.argv[1]
     discipline_list = eval(discipline)
     sys.argv = sys.argv[1:]
-print(f'Evaluating {model_name} on {discipline}')
+print(f'Evaluating {model_name} in {discipline}')
 
 MAX_RETRIES=5
 # logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

@@ -589,7 +589,7 @@ def mean(l: list):
     return sum(l) / len(l)
 
 
-def show_results(results: list[dict], metric_name: str, category_name: str=None, precision: int=4):
+def show_results(results: list[dict], metric_name: str, category_name: str=None, precision: int=2, scale=1):
     category_dict = {}
     for item in results:
         if category_name is None:
@@ -603,7 +603,7 @@ def show_results(results: list[dict], metric_name: str, category_name: str=None,
         category_dict[item_category].append(item_metric)
         
     for k, v in category_dict.items():
-        category_dict[k] = round(mean(v), precision)
+        category_dict[k] = round(mean(v)*scale, precision)
 
     if category_name is None:
         return category_dict['default']

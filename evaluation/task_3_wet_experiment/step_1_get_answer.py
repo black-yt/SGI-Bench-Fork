@@ -17,7 +17,7 @@ if len(sys.argv) > 1:
     discipline = sys.argv[1]
     discipline_list = eval(discipline)
     sys.argv = sys.argv[1:]
-print(f'Evaluating {model_name} on {discipline}')
+print(f'Evaluating {model_name} in {discipline}')
 
 llm_model = LLM(model_name)
 answer_paser = AnswerPaser()
