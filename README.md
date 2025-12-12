@@ -14,8 +14,8 @@
 <div align="center">
 
 [![Official Site](https://img.shields.io/badge/Official%20Site-333399.svg?logo=homepage)](https://internscience.github.io/SGI-Page/)&#160;
-[![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20HuggingFace-SGI--Bench-yellow)](https://huggingface.co/collections/InternScience/sgi-bench)&#160;
-[![PDF](https://img.shields.io/badge/%F0%9F%96%BC%20PDF-Paper-ff69b4)](https://internscience.github.io/SGI-Page/paper.pdf)&#160;
+[![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20HuggingFace-gray)](https://huggingface.co/collections/InternScience/sgi-bench)&#160;
+[![PDF](https://img.shields.io/badge/📄%20PDF-ff69b4)](https://internscience.github.io/SGI-Page/paper.pdf)&#160;
 [![GitHub](https://img.shields.io/badge/GitHub-000000?logo=github&logoColor=white)](https://github.com/InternScience/SGI-Bench)&#160;
 <!-- <a href="https://arxiv.org/abs/xxxx.xxxxx" target="_blank"><img src="https://img.shields.io/badge/arXiv-b5212f.svg?logo=arxiv" height="21px"></a> -->
 
