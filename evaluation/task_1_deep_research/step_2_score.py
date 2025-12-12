@@ -1,15 +1,25 @@
 import json
 import os
 import sys
-from json_repair import repair_json
 sys.path.append('.')
 from utils import LLM, muti_thread
+from json_repair import repair_json
 
 
 save_dir = './task_1_deep_research/logs'
 model_name = 'gpt-4.1'
+discipline = "['all']"
+discipline_list = ['astronomy', 'chemistry', 'earth', 'energy', 'information', 'life', 'material', 'mathematics', 'neuroscience', 'physics']
+if len(sys.argv) > 1:
+    model_name = sys.argv[1]
+    sys.argv = sys.argv[1:]
+if len(sys.argv) > 1:
+    discipline = sys.argv[1]
+    discipline_list = eval(discipline)
+    sys.argv = sys.argv[1:]
+print(f'Evaluating {model_name} on {discipline}')
 
-with open(os.path.join(save_dir, f"{model_name.replace('/', '_')}.json"), 'r', encoding='utf-8') as json_file:
+with open(os.path.join(save_dir, f"{model_name.replace('/', '_')}{discipline}.json"), 'r', encoding='utf-8') as json_file:
     model_answer = json.load(json_file)
 
 judge = LLM('o4-mini')
@@ -73,7 +83,7 @@ You are an expert in systematically validating and evaluating LLM-generated solu
 inp_list = [{'ques_dict': ques} for ques in model_answer]
 out_list = muti_thread(inp_list, eval_model_output, 100)
 
-with open(os.path.join(save_dir, f"{model_name.replace('/', '_')}.json"), 'w', encoding='utf-8') as json_file:
+with open(os.path.join(save_dir, f"{model_name.replace('/', '_')}{discipline}.json"), 'w', encoding='utf-8') as json_file:
     json.dump(out_list, json_file, ensure_ascii=False, indent=4)
 
 

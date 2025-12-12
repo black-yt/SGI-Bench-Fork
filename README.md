@@ -130,8 +130,8 @@ pip install -r requirements.txt
 
 ```bash
 conda activate sgi
-python task_1_deep_research/step_1_get_answer.py
-python task_1_deep_research/step_2_score.py
+python task_1_deep_research/step_1_get_answer.py gpt-5.2-pro
+python task_1_deep_research/step_2_score.py gpt-5.2-pro
 ```
 
 ### 💡 Task 2 Idea Generation
@@ -148,8 +148,8 @@ pip install -r task_2_idea_generation/idea_generation_requirements.txt
 
 ```bash
 conda activate idea
-python task_2_idea_generation/step_1_get_answer.py
-python task_2_idea_generation/step_2_score.py
+python task_2_idea_generation/step_1_get_answer.py gpt-5.2-pro
+python task_2_idea_generation/step_2_score.py gpt-5.2-pro
 ```
 
 ### 🖥️ Task 3.1 Dry Experiment (Code Generation)
@@ -175,25 +175,32 @@ python task_3_dry_experiment/step_1_build.py
 
 ```bash
 conda activate sgi
-python task_3_dry_experiment/step_2_get_answer.py
-python task_3_dry_experiment/step_3_run_code.py
-python task_3_dry_experiment/step_4_score.py
+python task_3_dry_experiment/step_2_get_answer.py gpt-5.2-pro
+python task_3_dry_experiment/step_3_run_code.py gpt-5.2-pro
+python task_3_dry_experiment/step_4_score.py gpt-5.2-pro
 ```
 
 ### 🧪 Task 3.2 Wet Experiment (Lab Protocol)
 
 ```bash
 conda activate sgi
-python task_3_wet_experiment/step_1_get_answer.py
-python task_3_wet_experiment/step_2_score.py
+python task_3_wet_experiment/step_1_get_answer.py gpt-5.2-pro
+python task_3_wet_experiment/step_2_score.py gpt-5.2-pro
 ```
 
 ### 📊 Task 4 Experimental Reasoning
 
 ```bash
 conda activate sgi
-python task_4_experimental_reasoning/step_1_get_answer.py
-python task_4_experimental_reasoning/step_2_score.py
+python task_4_experimental_reasoning/step_1_get_answer.py gpt-5.2-pro
+python task_4_experimental_reasoning/step_2_score.py gpt-5.2-pro
+```
+
+### 💎 SGI-Score
+
+```bash
+conda activate sgi
+python sgi_score.py gpt-5.2-pro
 ```
 
 ---

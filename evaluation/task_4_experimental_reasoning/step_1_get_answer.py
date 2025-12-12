@@ -1,15 +1,23 @@
-import copy
 import json
 import os
-import random
 import sys
 sys.path.append('.')
-from utils import VLM, muti_thread, extract_final_answer
+from utils import VLM, muti_thread
 from datasets import load_dataset
 
 dataset = load_dataset("InternScience/SGI-Reasoning")
 save_dir = './task_4_experimental_reasoning/logs'
 model_name = 'gpt-4.1'
+discipline = "['all']"
+discipline_list = ['astronomy', 'chemistry', 'earth', 'energy', 'information', 'life', 'material', 'mathematics', 'neuroscience', 'physics']
+if len(sys.argv) > 1:
+    model_name = sys.argv[1]
+    sys.argv = sys.argv[1:]
+if len(sys.argv) > 1:
+    discipline = sys.argv[1]
+    discipline_list = eval(discipline)
+    sys.argv = sys.argv[1:]
+print(f'Evaluating {model_name} on {discipline}')
 
 vlm_model = VLM(model_name)
 
@@ -42,7 +50,7 @@ def get_answer(ques_dict: dict):
 
     return ques_dict
 
-inp_list = [{"ques_dict": q} for q in dataset['test']]
+inp_list = [{"ques_dict": q} for q in dataset['test'] if q['discipline'] in discipline_list]
 out_list = muti_thread(inp_list, get_answer)
 
 os.makedirs(save_dir, exist_ok=True)
@@ -50,5 +58,5 @@ for idx in range(len(out_list)):
     # unserializable
     del out_list[idx]['images']
     del out_list[idx]['step_images']
-with open(os.path.join(save_dir, f"{model_name.replace('/', '_')}.json"), 'w', encoding='utf-8') as json_file:
+with open(os.path.join(save_dir, f"{model_name.replace('/', '_')}{discipline}.json"), 'w', encoding='utf-8') as json_file:
     json.dump(out_list, json_file, ensure_ascii=False, indent=4)

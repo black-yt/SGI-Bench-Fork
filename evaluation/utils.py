@@ -11,9 +11,11 @@ from typing import Union
 import json
 import ast
 import re
+from functools import wraps
+import threading
 
 
-def muti_thread(inp_list, function, max_workers=40):
+def muti_thread(inp_list, function, max_workers=100):
     results = [None] * len(inp_list)
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_index = {
@@ -32,7 +34,7 @@ def muti_thread(inp_list, function, max_workers=40):
     return results
 
 
-def multi_process(inp_list, function, max_workers=40):
+def multi_process(inp_list, function, max_workers=100):
     results = [None] * len(inp_list)
     with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
         future_to_index = {
@@ -61,78 +63,252 @@ def extract_final_answer(answer_with_thinking: str, start_tag='<answer>', end_ta
     return None
 
 
+def timeout_limit(timeout=None):
+    """
+    A decorator for enforcing function execution time limits.
+
+    Args:
+        timeout (float or None): Maximum allowed execution time in seconds.
+                                If None, no time limit is applied.
+
+    Returns:
+        The function's return value if completed in time.
+        Raises TimeoutError if execution exceeds the allowed time.
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if timeout is None:
+                # No time restriction
+                return func(*args, **kwargs)
+
+            result = [None]
+            exc = [None]
+
+            def target():
+                try:
+                    result[0] = func(*args, **kwargs)
+                except Exception as e:
+                    exc[0] = e
+
+            thread = threading.Thread(target=target)
+            thread.start()
+            thread.join(timeout)
+
+            if thread.is_alive():
+                raise TimeoutError(f"[Error][Function timeout after {timeout}s]")
+
+            if exc[0] is not None:
+                raise exc[0]
+
+            return result[0]
+
+        return wrapper
+
+    return decorator
+
+
 
 class LLM:
     def __init__(self, model='gpt-4.1', **kwargs):
-        self.api_key = kwargs.get('api_key', os.environ.get('OPENAI_API_KEY')) # export OPENAI_API_KEY="xxxxx"
-        self.base_url = kwargs.get('base_url', os.environ.get('OPENAI_BASE_URL')) # export OPENAI_BASE_URL="xxxxx"
+        self.api_key  = kwargs.get('api_key',  os.environ.get('OPENAI_API_KEY'))
+        self.base_url = kwargs.get('base_url', os.environ.get('OPENAI_BASE_URL'))
         self.model = model
+
         if not self.api_key:
             raise ValueError("API key is required.")
+
         self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
 
+        self.use_chat = False
+        self.use_responses = False
+        # -----------------------------
+        # Try chat.completions
+        # -----------------------------
+        try:
+            self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "test"},
+                    {"role": "user",   "content": "hello"},
+                ],
+            )
+            self.use_chat = True
+            # print(f"[INFO][LLM] chat.completions supported → using chat")
+            return
+
+        except Exception as e_chat:
+            # print(f"[INFO][LLM] chat.completions unsupported: {e_chat}")
+            pass
+
+        # -----------------------------
+        # Try responses
+        # -----------------------------
+        try:
+            self.client.responses.create(
+                model=self.model,
+                input="hello",
+            )
+            self.use_responses = True
+            # print(f"[INFO][LLM] responses API supported → using responses")
+            return
+
+        except Exception as e_resp:
+            # print(f"[INFO][LLM] responses unsupported: {e_resp}")
+            pass
+
+        # -----------------------------
+        # Neither works → fail init
+        # -----------------------------
+        raise RuntimeError(
+            f"Model '{self.model}' supports neither chat.completions nor responses API."
+        )
+
+
+    @timeout_limit(5*60)
     def __call__(self, query=None, **kwargs):
         system_prompt = kwargs.get('system_prompt', 'You are a helpful assistant.')
         max_tokens = kwargs.get('max_tokens', None)
         temperature = kwargs.get('temperature', 0)
 
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": query},
-        ]
+        if self.use_chat:
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user",   "content": query},
+            ]
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                max_tokens=max_tokens,
+                temperature=temperature,
+            )
+            return response.choices[0].message.content
 
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            max_tokens=max_tokens,
-            temperature=temperature,
-        )
-        assistant_response = response.choices[0].message.content
-        return assistant_response
-
-
-def b64_encode_image(img) -> str:
-    buffered = io.BytesIO()
-    img.save(buffered, format="PNG")
-    return base64.b64encode(buffered.getvalue()).decode("utf-8")
+        elif self.use_responses:
+            response = self.client.responses.create(
+                model=self.model,
+                input=query,
+                max_output_tokens=max_tokens,
+                temperature=temperature,
+            )
+            return response.output_text
 
 
 class VLM:
     def __init__(self, model='gpt-4.1', **kwargs):
-        self.api_key = kwargs.get('api_key', os.environ.get('OPENAI_API_KEY')) # export OPENAI_API_KEY="xxxxx"
-        self.base_url = kwargs.get('base_url', os.environ.get('OPENAI_BASE_URL')) # export OPENAI_BASE_URL="xxxxx"
+        self.api_key  = kwargs.get('api_key',  os.environ.get('OPENAI_API_KEY'))
+        self.base_url = kwargs.get('base_url', os.environ.get('OPENAI_BASE_URL'))
         self.model = model
+
         if not self.api_key:
             raise ValueError("API key is required.")
+
         self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
 
+        self.use_chat = False
+        self.use_responses = False
+        # -----------------------------
+        # Try chat.completions
+        # -----------------------------
+        try:
+            self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "test"},
+                    {"role": "user", "content": [{"type": "text", "text": "hello"}]},
+                ],
+            )
+            self.use_chat = True
+            # print(f"[INFO][VLM] chat.completions supported → using chat")
+            return
+
+        except Exception as e_chat:
+            # print(f"[INFO][VLM] chat.completions unsupported: {e_chat}")
+            pass
+
+
+        # -----------------------------
+        # Try responses
+        # -----------------------------
+        try:
+            self.client.responses.create(
+                model=self.model,
+                input="hello",
+            )
+            self.use_responses = True
+            # print(f"[INFO][VLM] responses API supported → using responses")
+            return
+
+        except Exception as e_resp:
+            # print(f"[INFO][VLM] responses unsupported: {e_resp}")
+            pass
+
+
+        # -----------------------------
+        # Neither works → fail init
+        # -----------------------------
+        raise RuntimeError(
+            f"Model '{self.model}' supports neither chat.completions nor responses API."
+        )
+
+
+    def b64_encode_image(self, img):
+        buffered = io.BytesIO()
+        img.save(buffered, format="PNG")
+        return base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+
+    @timeout_limit(5*60)
     def __call__(self, images=None, query=None, **kwargs):
         system_prompt = kwargs.get('system_prompt', 'You are a helpful assistant.')
         max_tokens = kwargs.get('max_tokens', None)
         temperature = kwargs.get('temperature', 0)
 
-        image_msgs = []
-        if images is not None:
-            for img in images:
-                b64 = b64_encode_image(img)
-                image_msgs.append({
-                    "type": "image_url",
-                    "image_url": {"url": f"data:image/png;base64,{b64}"}
-                })
+        
 
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": image_msgs + [{"type": "text", "text": query}]},
-        ]
+        if self.use_chat:
+            image_blocks = []
+            if images:
+                for img in images:
+                    b64 = self.b64_encode_image(img)
+                    image_blocks.append({
+                        "type": "image_url",
+                        "image_url": {"url": f"data:image/png;base64,{b64}"}
+                    })
+            input_blocks = image_blocks + [{"type": "text", "text": query}]
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user",   "content": input_blocks},
+            ]
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                max_tokens=max_tokens,
+                temperature=temperature,
+            )
+            return response.choices[0].message.content
 
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            max_tokens=max_tokens,
-            temperature=temperature,
-        )
-        assistant_response = response.choices[0].message.content
-        return assistant_response
+        elif self.use_responses:
+            image_blocks = []
+            if images:
+                for img in images:
+                    b64 = self.b64_encode_image(img)
+                    image_blocks.append({
+                        "type": "input_image",
+                        "image_url": f"data:image/png;base64,{b64}"
+                    })
+            input_blocks = image_blocks + [{"type": "input_text", "text": query}]
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user",   "content": input_blocks},
+            ]
+            response = self.client.responses.create(
+                model=self.model,
+                input=messages,
+                max_output_tokens=max_tokens,
+                temperature=temperature,
+            )
+            return response.output_text
 
 
 class AnswerPaser:
@@ -406,3 +582,30 @@ def extract_reason(result_text, dimension):
     
     return "No specific reason provided"
 ############################## Idea Generation ##############################
+
+
+def mean(l: list):
+    assert len(l) > 0, "list length must > 0"
+    return sum(l) / len(l)
+
+
+def show_results(results: list[dict], metric_name: str, category_name: str=None, precision: int=4):
+    category_dict = {}
+    for item in results:
+        if category_name is None:
+            item_category = 'default'
+        else:
+            item_category = item[category_name]
+        if item_category not in category_dict:
+            category_dict[item_category] = []
+            
+        item_metric = float(item[metric_name])
+        category_dict[item_category].append(item_metric)
+        
+    for k, v in category_dict.items():
+        category_dict[k] = round(mean(v), precision)
+
+    if category_name is None:
+        return category_dict['default']
+    else:
+        return category_dict

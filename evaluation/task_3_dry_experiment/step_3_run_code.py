@@ -9,11 +9,18 @@ from utils import multi_process
 env = os.environ.copy()
 env["PYTHONIOENCODING"] = "utf-8"
 
-
-model_name = 'gpt-4.1'
 save_dir = './task_3_dry_experiment/logs'
-script_name = f"main_[{model_name.replace('/', '')}].py"
-
+model_name = 'gpt-4.1'
+discipline = "['all']"
+discipline_list = ['astronomy', 'chemistry', 'earth', 'energy', 'information', 'life', 'material', 'mathematics', 'neuroscience', 'physics']
+if len(sys.argv) > 1:
+    model_name = sys.argv[1]
+    sys.argv = sys.argv[1:]
+if len(sys.argv) > 1:
+    discipline = sys.argv[1]
+    discipline_list = eval(discipline)
+    sys.argv = sys.argv[1:]
+print(f'Evaluating {model_name} on {discipline}')
 
 def run_script(ques_dict):
     ques_dict['unit_test'] = []
@@ -28,7 +35,7 @@ def run_script(ques_dict):
             # Run the script and capture output
             start_time = time.time()
             result = subprocess.run(
-                ["conda", "run", "-n", "dryexp", "python", script_name],
+                ["conda", "run", "-n", "dryexp", "python", f"main_[{model_name.replace('/', '')}].py"],
                 capture_output=True,
                 text=True,
                 timeout=300,  # 5 minutes timeout
@@ -73,12 +80,11 @@ def run_script(ques_dict):
     return ques_dict
 
 
-with open(os.path.join(save_dir, f"{model_name.replace('/', '_')}.json"), 'r', encoding='utf-8') as json_file:
+with open(os.path.join(save_dir, f"{model_name.replace('/', '_')}{discipline}.json"), 'r', encoding='utf-8') as json_file:
     model_answer = json.load(json_file)
-
 
 inp_list = [{'ques_dict': ques} for ques in model_answer]
 out_list = multi_process(inp_list, run_script, 100)
 
-with open(os.path.join(save_dir, f"{model_name.replace('/', '_')}.json"), 'w', encoding='utf-8') as json_file:
+with open(os.path.join(save_dir, f"{model_name.replace('/', '_')}{discipline}.json"), 'w', encoding='utf-8') as json_file:
     json.dump(out_list, json_file, ensure_ascii=False, indent=4)

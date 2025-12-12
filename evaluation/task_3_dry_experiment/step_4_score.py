@@ -8,8 +8,18 @@ from utils import LLM, muti_thread
 
 save_dir = './task_3_dry_experiment/logs'
 model_name = 'gpt-4.1'
+discipline = "['all']"
+discipline_list = ['astronomy', 'chemistry', 'earth', 'energy', 'information', 'life', 'material', 'mathematics', 'neuroscience', 'physics']
+if len(sys.argv) > 1:
+    model_name = sys.argv[1]
+    sys.argv = sys.argv[1:]
+if len(sys.argv) > 1:
+    discipline = sys.argv[1]
+    discipline_list = eval(discipline)
+    sys.argv = sys.argv[1:]
+print(f'Evaluating {model_name} on {discipline}')
 
-with open(os.path.join(save_dir, f"{model_name.replace('/', '_')}.json"), 'r', encoding='utf-8') as json_file:
+with open(os.path.join(save_dir, f"{model_name.replace('/', '_')}{discipline}.json"), 'r', encoding='utf-8') as json_file:
     model_answer = json.load(json_file)
 
 judge = LLM('o4-mini')
@@ -64,21 +74,24 @@ example = {{
         ques_dict['unit_test'][unit_test_idx] = unit_test_dict
     
     ques_dict['pass_nums'] = sum([unit_test_dict['pass'] for unit_test_dict in ques_dict['unit_test']])
-    ques_dict['model_average_runtime'] = [unit_test_dict['model_runtime'] for unit_test_dict in ques_dict['unit_test'] if unit_test_dict['model_runtime'] > 0]
-    ques_dict['model_average_runtime'] = sum(ques_dict['model_average_runtime'])/len(ques_dict['model_average_runtime']) if len(ques_dict['model_average_runtime']) > 0 else -1
-    ques_dict['se'] = sum([1 if unit_test_dict['model_returncode']==0 else 0 for unit_test_dict in ques_dict['unit_test']]) / 5
+    ques_dict['PassAll@5'] = 1 if ques_dict['pass_nums'] == 5 else 0
+    ques_dict['PassAll@3'] = 1 if ques_dict['pass_nums'] >= 3 else 0
+    ques_dict['PassAll@1'] = 1 if ques_dict['pass_nums'] >= 1 else 0
+    ques_dict['AET'] = [unit_test_dict['model_runtime'] for unit_test_dict in ques_dict['unit_test'] if unit_test_dict['model_runtime'] > 0]
+    ques_dict['AET'] = sum(ques_dict['AET'])/len(ques_dict['AET']) if len(ques_dict['AET']) > 0 else -1
+    ques_dict['SER'] = sum([1 if unit_test_dict['model_returncode']==0 else 0 for unit_test_dict in ques_dict['unit_test']]) / 5
     return ques_dict
 
 
 inp_list = [{'ques_dict': ques} for ques in model_answer]
 out_list = muti_thread(inp_list, eval_model_output, 100)
 
-with open(os.path.join(save_dir, f"{model_name.replace('/', '_')}.json"), 'w', encoding='utf-8') as json_file:
+with open(os.path.join(save_dir, f"{model_name.replace('/', '_')}{discipline}.json"), 'w', encoding='utf-8') as json_file:
     json.dump(out_list, json_file, ensure_ascii=False, indent=4)
 
 print(model_name)
-print(f"PassAll@5: {sum([1 if (item['pass_nums']==5) else 0 for item in out_list])/len(out_list)}")
-print(f"PassAll@3: {sum([1 if (item['pass_nums']>=3) else 0 for item in out_list])/len(out_list)}")
-print(f"PassAll@1: {sum([1 if (item['pass_nums']>=1) else 0 for item in out_list])/len(out_list)}")
-print(f"AET: {sum([item['model_average_runtime'] for item in out_list if item['model_average_runtime'] > 0])/len([item['model_average_runtime'] for item in out_list if item['model_average_runtime'] > 0])}")
-print(f"SER: {sum([item['se'] for item in out_list])/len(out_list)}")
+print(f"PassAll@5: {sum([item['PassAll@5'] for item in out_list])/len(out_list)}")
+print(f"PassAll@3: {sum([item['PassAll@3']  for item in out_list])/len(out_list)}")
+print(f"PassAll@1: {sum([item['PassAll@1'] for item in out_list])/len(out_list)}")
+print(f"AET: {sum([item['AET'] for item in out_list if item['AET'] > 0])/len([item['AET'] for item in out_list if item['AET'] > 0])}")
+print(f"SER: {sum([item['SER'] for item in out_list])/len(out_list)}")

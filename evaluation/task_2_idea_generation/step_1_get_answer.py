@@ -10,6 +10,16 @@ from typing import Dict, Any
 dataset = load_dataset("InternScience/SGI-IdeaGeneration")
 save_dir = './task_2_idea_generation/logs'
 model_name = 'gpt-4.1'
+discipline = "['all']"
+discipline_list = ['astronomy', 'chemistry', 'earth', 'energy', 'information', 'life', 'material', 'mathematics', 'neuroscience', 'physics']
+if len(sys.argv) > 1:
+    model_name = sys.argv[1]
+    sys.argv = sys.argv[1:]
+if len(sys.argv) > 1:
+    discipline = sys.argv[1]
+    discipline_list = eval(discipline)
+    sys.argv = sys.argv[1:]
+print(f'Evaluating {model_name} on {discipline}')
 
 llm_model = LLM(model_name)
 
@@ -152,26 +162,17 @@ def get_answer(ques_dict: dict):
     
     parsed_data = parse_generated_idea(generated_idea)
     
-    ques_idx = ques_dict['idx']
-    question = ques_dict['question']
-    del ques_dict['idx']
-    del ques_dict['question']
-    result = {
-        'idx': ques_idx,
-        'question': question,
-        'original_data': ques_dict,  
-        'generated_idea_text': generated_idea,
-        'generated_data': parsed_data,
-    }
+    ques_dict['generated_idea_text'] = generated_idea
+    ques_dict['generated_data'] = parsed_data
     
-    return result
+    return ques_dict
 
-inp_list = [{"ques_dict": q} for q in dataset['test']]
+inp_list = [{"ques_dict": q} for q in dataset['test'] if q['discipline'] in discipline_list]
 
 out_list = muti_thread(inp_list, get_answer)
 
 os.makedirs(save_dir, exist_ok=True)
-output_path = os.path.join(save_dir, f"{model_name.replace('/', '_')}.json")
+output_path = os.path.join(save_dir, f"{model_name.replace('/', '_')}{discipline}.json")
 with open(output_path, 'w', encoding='utf-8') as json_file:
     json.dump(out_list, json_file, ensure_ascii=False, indent=4)
 

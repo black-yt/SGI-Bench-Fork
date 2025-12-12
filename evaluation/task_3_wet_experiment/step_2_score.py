@@ -1,3 +1,4 @@
+import sys
 import re
 import os
 import json
@@ -219,9 +220,18 @@ def compare_exp_steps(gt_steps, pred_steps):
 
 save_dir = './task_3_wet_experiment/logs'
 model_name = 'gpt-4.1'
+discipline = "['all']"
+discipline_list = ['astronomy', 'chemistry', 'earth', 'energy', 'information', 'life', 'material', 'mathematics', 'neuroscience', 'physics']
+if len(sys.argv) > 1:
+    model_name = sys.argv[1]
+    sys.argv = sys.argv[1:]
+if len(sys.argv) > 1:
+    discipline = sys.argv[1]
+    discipline_list = eval(discipline)
+    sys.argv = sys.argv[1:]
+print(f'Evaluating {model_name} on {discipline}')
 
-
-with open(os.path.join(save_dir, f"{model_name.replace('/', '_')}.json"), 'r', encoding='utf-8') as json_file:
+with open(os.path.join(save_dir, f"{model_name.replace('/', '_')}{discipline}.json"), 'r', encoding='utf-8') as json_file:
     model_answer = json.load(json_file)
 
 for ques_dict in model_answer:
@@ -238,8 +248,13 @@ for ques_dict in model_answer:
     #     print(f"Step {detail['step']}: {detail['status']} - {detail['message']}")
     # print('---------------------------------')
     
-    ques_dict.update(result)
+    ques_dict['action_sequence_similarity'] = result['order_similarity']
+    ques_dict['parameter_accuracy'] = result['parameter_acc']
+    ques_dict['final_score'] = (ques_dict['action_sequence_similarity']+ques_dict['parameter_accuracy'])/2
+
+with open(os.path.join(save_dir, f"{model_name.replace('/', '_')}{discipline}.json"), 'w', encoding='utf-8') as json_file:
+    json.dump(model_answer, json_file, ensure_ascii=False, indent=4)
 
 print(model_name)
-print(f"Action Sequence Similarity: {sum([item['order_similarity'] for item in model_answer])/len(model_answer)}")
-print(f"Parameter Accuracy: {sum([item['parameter_acc'] for item in model_answer])/len(model_answer)}")
+print(f"Action Sequence Similarity: {sum([item['action_sequence_similarity'] for item in model_answer])/len(model_answer)}")
+print(f"Parameter Accuracy: {sum([item['parameter_accuracy'] for item in model_answer])/len(model_answer)}")

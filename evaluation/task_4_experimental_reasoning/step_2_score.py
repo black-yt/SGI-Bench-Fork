@@ -7,18 +7,28 @@ from datasets import load_dataset
 sys.path.append('.')
 from utils import VLM, muti_thread
 
-
+dataset = load_dataset("InternScience/SGI-Reasoning")
 save_dir = './task_4_experimental_reasoning/logs'
 model_name = 'gpt-4.1'
+discipline = "['all']"
+discipline_list = ['astronomy', 'chemistry', 'earth', 'energy', 'information', 'life', 'material', 'mathematics', 'neuroscience', 'physics']
+if len(sys.argv) > 1:
+    model_name = sys.argv[1]
+    sys.argv = sys.argv[1:]
+if len(sys.argv) > 1:
+    discipline = sys.argv[1]
+    discipline_list = eval(discipline)
+    sys.argv = sys.argv[1:]
+print(f'Evaluating {model_name} on {discipline}')
 
-dataset = load_dataset("InternScience/SGI-Reasoning")
-with open(os.path.join(save_dir, f"{model_name.replace('/', '_')}.json"), 'r', encoding='utf-8') as json_file:
+with open(os.path.join(save_dir, f"{model_name.replace('/', '_')}{discipline}.json"), 'r', encoding='utf-8') as json_file:
     model_answer = json.load(json_file)
-for idx, q in enumerate(dataset['test']):
-    if idx >= len(model_answer):
-        break
-    model_answer[idx]['images'] = q['images']
-    model_answer[idx]['step_images'] = q['step_images']
+
+image_mapping = {q["idx"]: {"images": q["images"], "step_images": q["images"]} for q in dataset['test']}
+for item in model_answer:
+    idx = item["idx"]
+    item['images'] = image_mapping[idx]['images']
+    item['step_images'] = image_mapping[idx]['step_images']
 
 judge = VLM('o4-mini')
 
@@ -102,8 +112,8 @@ Model Prediction:
 
     mcc_score = mm_reasoning_is_correct(ques_dict['model_answer'], chr(ord('A') + int(ques_dict['answer'])))
 
-    ques_dict['mcc'] = 1 if mcc_score else 0
-    ques_dict['rv'] = rv_score / 10.0
+    ques_dict['MCA'] = 1 if mcc_score else 0
+    ques_dict['RV'] = rv_score / 10.0
     return ques_dict
 
 
@@ -114,9 +124,9 @@ for idx in range(len(out_list)):
     # unserializable
     del out_list[idx]['images']
     del out_list[idx]['step_images']
-with open(os.path.join(save_dir, f"{model_name.replace('/', '_')}.json"), 'w', encoding='utf-8') as json_file:
+with open(os.path.join(save_dir, f"{model_name.replace('/', '_')}{discipline}.json"), 'w', encoding='utf-8') as json_file:
     json.dump(out_list, json_file, ensure_ascii=False, indent=4)
 
 print(model_name)
-print(f"MCC: {sum([item['mcc'] for item in out_list])/len(out_list)}")
-print(f"RV: {sum([item['rv'] for item in out_list])/len(out_list)}")
+print(f"MCA: {sum([item['MCA'] for item in out_list])/len(out_list)}")
+print(f"RV: {sum([item['RV'] for item in out_list])/len(out_list)}")

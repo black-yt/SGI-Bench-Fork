@@ -16,8 +16,18 @@ from utils import LLM, muti_thread
 from utils import format_idea_data, get_context_from_data, get_evaluation_prompt_modified, parse_evaluation_result, flip_evaluation_result
 
 dataset = load_dataset("InternScience/SGI-IdeaGeneration")
-model_name = "gpt-4.1"
 save_dir = './task_2_idea_generation/logs'
+model_name = "gpt-4.1"
+discipline = "['all']"
+discipline_list = ['astronomy', 'chemistry', 'earth', 'energy', 'information', 'life', 'material', 'mathematics', 'neuroscience', 'physics']
+if len(sys.argv) > 1:
+    model_name = sys.argv[1]
+    sys.argv = sys.argv[1:]
+if len(sys.argv) > 1:
+    discipline = sys.argv[1]
+    discipline_list = eval(discipline)
+    sys.argv = sys.argv[1:]
+print(f'Evaluating {model_name} on {discipline}')
 
 MAX_RETRIES=5
 # logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -226,7 +236,7 @@ def get_vote_from_model(model, original_idea_data, generated_idea_data, context=
         
         except Exception as e:
             retry_count += 1
-            logging.error(f"model {model} evaluation error: {e}，进行第{retry_count}次重试")
+            logging.error(f"model {model} evaluation error: {e}, try {retry_count}")
             time.sleep(1)   
 
     logging.warning(f"model {model} evaluation failed after {MAX_RETRIES} retries")
@@ -319,27 +329,27 @@ def compare_ideas_with_voting(original_idea_data, generated_idea_data, context=N
     
 
 class ImprovedIdeaEvaluator:
-    def __init__(self, idx: str, generated_idea: dict, original_data: dict):
-        self.idx = idx
-        self.original_data = original_data
-        self.original_data["Idea"]=self.original_data.get("core_idea", "")
-        self.original_data["RelatedWork"]=ast.literal_eval(self.original_data.get("related_work", {}))
-        self.original_data["ExistingSolutions"]=ast.literal_eval(self.original_data.get("existing_solutions", {}))
-        self.original_data["ImplementationSteps"]=ast.literal_eval(self.original_data.get("implementation_steps", "{}"))
-        self.original_data["ImplementationOrder"]=list(self.original_data.get("implementation_order", "[]"))
-        self.original_data["EvaluationMetrics"]=ast.literal_eval(self.original_data.get("evaluation_metrics", "{}"))
-        self.original_data["Dataset"]=self.original_data.get("data", "")
-        self.original_data["ExpectedOutcome"]=self.original_data.get("expected_outcome", "")
+    def __init__(self, idea_dict: dict):
+        self.idea_dict = idea_dict
+        self.original_data = {k: v for k, v in idea_dict.items() if k not in ["generated_idea_text", "generated_data"]}
+        self.original_data["Idea"] = self.original_data.get("core_idea", "")
+        self.original_data["RelatedWork"] = ast.literal_eval(self.original_data.get("related_work", {}))
+        self.original_data["ExistingSolutions"] = ast.literal_eval(self.original_data.get("existing_solutions", {}))
+        self.original_data["ImplementationSteps"] = ast.literal_eval(self.original_data.get("implementation_steps", "{}"))
+        self.original_data["ImplementationOrder"] = list(self.original_data.get("implementation_order", "[]"))
+        self.original_data["EvaluationMetrics"] = ast.literal_eval(self.original_data.get("evaluation_metrics", "{}"))
+        self.original_data["Dataset"] = self.original_data.get("data", "")
+        self.original_data["ExpectedOutcome"] = self.original_data.get("expected_outcome", "")
         
-        self.generated_data = generated_idea
-        self.idea = generated_idea.get("Idea", "")
+        self.generated_data = idea_dict["generated_data"]
+        self.idea = self.generated_data.get("Idea", "")
         self.generated_data["Idea"]=self.idea
-        self.implementation_steps = generated_idea.get("ImplementationSteps", {})
-        self.implementation_order = generated_idea.get("ImplementationOrder", {})
-        self.dataset = generated_idea.get("Dataset", "")
-        self.generated_data["Dataset"]=self.dataset
-        self.evaluation_metrics = generated_idea.get("EvaluationMetrics", "")
-        self.expected_outcome = generated_idea.get("ExpectedOutcome", "")
+        self.implementation_steps = self.generated_data.get("ImplementationSteps", {})
+        self.implementation_order = self.generated_data.get("ImplementationOrder", {})
+        self.dataset = self.generated_data.get("Dataset", "")
+        self.generated_data["Dataset"] = self.dataset
+        self.evaluation_metrics = self.generated_data.get("EvaluationMetrics", "")
+        self.expected_outcome = self.generated_data.get("ExpectedOutcome", "")
         
         self.raw_scores = {
             "novelty_similarity": 0.0,
@@ -575,19 +585,12 @@ class ImprovedIdeaEvaluator:
             return 0.0
     
     def LLM_multi_rounds(self, llm_judges):
-        try:
-            idea_data = {
-                "original_data": self.original_data,
-                "generated_data": self.generated_data
-            }
-            original_data = idea_data["original_data"]
-            generated_data = idea_data["generated_data"]
-            
-            context = get_context_from_data(original_data)
+        try:            
+            context = get_context_from_data(self.original_data)
             
             evaluation_results = compare_ideas_with_voting(
-                original_idea_data=original_data,
-                generated_idea_data=generated_data,
+                original_idea_data=self.original_data,
+                generated_idea_data=self.generated_data,
                 context=context,
                 judge_models=llm_judges
             )
@@ -633,28 +636,32 @@ class ImprovedIdeaEvaluator:
         self.evaluate_feasibility_objective()
         self.evaluate_penalties()
         self.merge_scores()
-        
-        return {
-            "idx": self.idx,
-            "individual_scores": {
-                "novelty_objective": float(round(self.scores["novelty_objective"], 2)),
-                "effectiveness_objective": float(round(self.scores["effectiveness_objective"], 2)),
-                "feasibility_objective": float(round(self.scores["feasibility_objective"], 2)),
-                "detailedness_objective": float(round(self.scores["detailedness_objective"], 2)),
-                "novelty_subjective": self.scores["novelty_subjective"],
-                "effectiveness_subjective": self.scores["effectiveness_subjective"],  
-                "detailedness_subjective": self.scores["detailedness_subjective"],
-                "feasibility_subjective": self.scores["feasibility_subjective"],
-            }
-        }
+
+        self.idea_dict.update({
+            "effectiveness_objective": float(self.scores["effectiveness_objective"])*10,
+            "novelty_objective": float(self.scores["novelty_objective"])*10,
+            "detailedness_objective": float(self.scores["detailedness_objective"])*10,
+            "feasibility_objective": float(self.scores["feasibility_objective"])*10,
+            "effectiveness_subjective": 100 if self.scores["effectiveness_subjective"] == 'win' else 0,  
+            "novelty_subjective": 100 if self.scores["novelty_subjective"] == 'win' else 0,
+            "detailedness_subjective": 100 if self.scores["detailedness_subjective"] == 'win' else 0,
+            "feasibility_subjective": 100 if self.scores["feasibility_subjective"] == 'win' else 0,
+        })
+        self.idea_dict.update({
+            "effectiveness": (self.idea_dict["effectiveness_objective"]+self.idea_dict["effectiveness_subjective"])/2,
+            "novelty": (self.idea_dict["novelty_objective"]+self.idea_dict["novelty_subjective"])/2,
+            "detailedness": (self.idea_dict["detailedness_objective"]+self.idea_dict["detailedness_subjective"])/2,
+            "feasibility": (self.idea_dict["feasibility_objective"]+self.idea_dict["feasibility_subjective"])/2,
+            
+        })
+        self.idea_dict["final_score"] = (self.idea_dict["effectiveness"]+self.idea_dict["novelty"]+self.idea_dict["detailedness"]+self.idea_dict["feasibility"])/4
+
+        return self.idea_dict
+
 
 def evaluate_single_idea(ques_dict):
     try:
-        evaluator = ImprovedIdeaEvaluator(
-            idx = ques_dict["idx"],
-            original_data=ques_dict["original_data"],
-            generated_idea=ques_dict["generated_data"],
-        )
+        evaluator = ImprovedIdeaEvaluator(ques_dict)
         evaluation_result = evaluator.calculate_final_score(llm_judges=JUDGE_MODELS)
         output=evaluation_result
         return output
@@ -668,7 +675,7 @@ def evaluate_single_idea(ques_dict):
         return output
 
 def main():
-    input_path = os.path.join(save_dir, f"{model_name}.json")
+    input_path = os.path.join(save_dir, f"{model_name.replace('/', '_')}{discipline}.json")
     with open(input_path, 'r', encoding='utf-8') as f:
         model_answers = json.load(f)
     
@@ -677,43 +684,30 @@ def main():
     inp_list = [{'ques_dict': ques} for ques in model_answers]
     out_list = muti_thread(inp_list, evaluate_single_idea, 100)
     
-    output_path = os.path.join(save_dir, f"{model_name}_evaluation.json")
+    output_path = os.path.join(save_dir, f"{model_name.replace('/', '_')}{discipline}_evaluation.json")
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(out_list, f, indent=4, ensure_ascii=False)
     
-    successful_evaluations = [item for item in out_list if "error" not in item.get("evaluation", {})]
+    successful_evaluations = [item for item in out_list if "error" not in item]
     
     if successful_evaluations:
-        avg_novelty_objective = np.mean([item["individual_scores"]["novelty_objective"] for item in successful_evaluations])*10
-        avg_effectiveness_objective = np.mean([item["individual_scores"]["effectiveness_objective"] for item in successful_evaluations])*10
-        avg_feasibility_objective = np.mean([item["individual_scores"]["feasibility_objective"] for item in successful_evaluations])*10
-        avg_detailedness_objective = np.mean([item["individual_scores"]["detailedness_objective"] for item in successful_evaluations])*10 
-        novelty_win_counts = 0
-        effectiveness_win_counts = 0
-        detailedness_win_counts = 0
-        feasibility_win_counts = 0
-        for item in successful_evaluations:
-            if item["individual_scores"]["novelty_subjective"] == "win":
-                novelty_win_counts += 1
-            if item["individual_scores"]["effectiveness_subjective"] == "win":
-                effectiveness_win_counts += 1
-            if item["individual_scores"]["detailedness_subjective"] == "win":
-                detailedness_win_counts += 1
-            if item["individual_scores"]["feasibility_subjective"] == "win":
-                feasibility_win_counts += 1
-        novelty_win_rate = novelty_win_counts / len(successful_evaluations) * 100
-        effectiveness_win_rate = effectiveness_win_counts / len(successful_evaluations) * 100
-        detailedness_win_rate = detailedness_win_counts / len(successful_evaluations) * 100
-        feasibility_win_rate = feasibility_win_counts / len(successful_evaluations) * 100
+        avg_effectiveness_objective = np.mean([item["effectiveness_objective"] for item in successful_evaluations])
+        avg_novelty_objective = np.mean([item["novelty_objective"] for item in successful_evaluations])
+        avg_detailedness_objective = np.mean([item["detailedness_objective"] for item in successful_evaluations])
+        avg_feasibility_objective = np.mean([item["feasibility_objective"] for item in successful_evaluations])
+
+        avg_effectiveness_subjective = np.mean([item["effectiveness_subjective"] for item in successful_evaluations])
+        avg_novelty_subjective = np.mean([item["novelty_subjective"] for item in successful_evaluations])
+        avg_detailedness_subjective = np.mean([item["detailedness_subjective"] for item in successful_evaluations])
+        avg_feasibility_subjective = np.mean([item["feasibility_subjective"] for item in successful_evaluations])
         
-        avg_objective_score = (avg_novelty_objective + avg_effectiveness_objective + avg_feasibility_objective + avg_detailedness_objective) / 4
-        avg_subjective_score =(novelty_win_rate + effectiveness_win_rate + detailedness_win_rate + feasibility_win_rate) / 4
-        avg_final_score = (avg_objective_score+avg_subjective_score)/2
-        
-        novelty_score=(avg_novelty_objective+novelty_win_rate)/2
-        effectiveness_score=(avg_effectiveness_objective+effectiveness_win_rate)/2
-        detailedness_score=(avg_detailedness_objective+detailedness_win_rate)/2
-        feasibility_score=(avg_feasibility_objective+feasibility_win_rate)/2
+        effectiveness_score = np.mean([item["effectiveness"] for item in successful_evaluations])
+        novelty_score = np.mean([item["novelty"] for item in successful_evaluations])
+        detailedness_score = np.mean([item["detailedness"] for item in successful_evaluations])
+        feasibility_score = np.mean([item["feasibility"] for item in successful_evaluations])
+
+        avg_final_score =  np.mean([item["final_score"] for item in successful_evaluations])
+
         
         meta_evaluation = {
             "model_name": model_name,
@@ -721,20 +715,20 @@ def main():
             "total_evaluations": len(out_list),
             "successful_evaluations": len(successful_evaluations),
             "average_scores": {
-                "final_score": round(avg_final_score, 2),
-                "novelty": round(novelty_score, 2),
-                "effectiveness": round(effectiveness_score, 2),
-                "feasibility": round(feasibility_score, 2),
-                "detailedness": round(detailedness_score, 2),
+                "final_score": avg_final_score,
+                "effectiveness": effectiveness_score,
+                "novelty": novelty_score,
+                "detailedness": detailedness_score,
+                "feasibility": feasibility_score,
                 "details":{
-                    "novelty_objective": round(avg_novelty_objective, 2),
-                    "novelty_win_rate": round(novelty_win_rate, 2),
-                    "effectiveness_objective": round(avg_effectiveness_objective, 2),
-                    "effectiveness_win_rate": round(effectiveness_win_rate, 2),
-                    "feasibility_objective": round(avg_feasibility_objective, 2),
-                    "feasibility_win_rate": round(feasibility_win_rate, 2),
-                    "detailedness_objective": round(avg_detailedness_objective, 2),
-                    "detailedness_win_rate": round(detailedness_win_rate, 2),
+                    "effectiveness_objective": avg_effectiveness_objective,
+                    "effectiveness_win_rate": avg_effectiveness_subjective,
+                    "novelty_objective": avg_novelty_objective,
+                    "novelty_win_rate": avg_novelty_subjective,
+                    "detailedness_objective": avg_detailedness_objective,
+                    "detailedness_win_rate": avg_detailedness_subjective,
+                    "feasibility_objective": avg_feasibility_objective,
+                    "feasibility_win_rate": avg_feasibility_subjective,
                 }
             },
             "judge_models": JUDGE_MODELS,
@@ -749,7 +743,7 @@ def main():
             "error": "All evaluations failed"
         }
     
-    meta_output_path = os.path.join(save_dir, f"{model_name.replace('/', '_')}_meta_evaluation.json")
+    meta_output_path = os.path.join(save_dir, f"{model_name.replace('/', '_')}{discipline}_meta_evaluation.json")
     with open(meta_output_path, 'w', encoding='utf-8') as f:
         json.dump(meta_evaluation, f, indent=4, ensure_ascii=False)
     
@@ -760,23 +754,24 @@ def main():
     
     if successful_evaluations:
         print(f"\nAverage Scores:")
-        print(f"  Final Score: {meta_evaluation['average_scores']['final_score']}")
+        print(f"  Final Score: {avg_final_score:.2f}")
+
+        print(f"  Effectiveness: {effectiveness_score:.2f}")
+        print(f"        Effectiveness Objective: {avg_effectiveness_objective:.2f}")
+        print(f"        Effectiveness Subjective Win Rate: {avg_effectiveness_subjective:.2f}%")
         
         print(f"  Novelty: {novelty_score:.2f}")
-        print(f"        Novelty Objective: {meta_evaluation['average_scores']['details']['novelty_objective']}")
-        print(f"        Novelty Subjective Win Rate: {novelty_win_rate:.2f}%")
-        
-        print(f"  Effectiveness: {effectiveness_score:.2f}")
-        print(f"        Effectiveness Objective: {meta_evaluation['average_scores']['details']['effectiveness_objective']}")
-        print(f"        Effectiveness Subjective Win Rate: {effectiveness_win_rate:.2f}%")
-        
-        print(f"  Feasibility: {feasibility_score:.2f}")
-        print(f"        Feasibility Objective: {meta_evaluation['average_scores']['details']['feasibility_objective']}")
-        print(f"        Feasibility Subjective Win Rate: {feasibility_win_rate:.2f}%")
+        print(f"        Novelty Objective: {avg_novelty_objective:.2f}")
+        print(f"        Novelty Subjective Win Rate: {avg_novelty_subjective:.2f}%")
         
         print(f"  Detailedness: {detailedness_score:.2f}")
-        print(f"        Detailedness Objective: {meta_evaluation['average_scores']['details']['detailedness_objective']}")
-        print(f"        Detailedness Subjective Win Rate: {detailedness_win_rate:.2f}%")
+        print(f"        Detailedness Objective: {avg_detailedness_objective:.2f}")
+        print(f"        Detailedness Subjective Win Rate: {avg_detailedness_subjective:.2f}%")
+
+        
+        print(f"  Feasibility: {feasibility_score:.2f}")
+        print(f"        Feasibility Objective: {avg_feasibility_objective:.2f}")
+        print(f"        Feasibility Subjective Win Rate: {feasibility_score:.2f}%")
     
     print(f"\nResults saved to:")
     print(f"  {output_path}")
