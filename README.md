@@ -1,7 +1,5 @@
 <div align="center">
-
-# Probing Scientific General Intelligence of LLMs with Scientist-Aligned Workflows
-
+  <h1>Probing Scientific General Intelligence of LLMs with Scientist-Aligned Workflows</h1>
 </div>
 
 <!-- <p align="center">
@@ -19,7 +17,7 @@
 [![GitHub](https://img.shields.io/badge/GitHub-000000?logo=github&logoColor=white)](https://github.com/InternScience/SGI-Bench)&#160;
 <!-- <a href="https://arxiv.org/abs/xxxx.xxxxx" target="_blank"><img src="https://img.shields.io/badge/arXiv-b5212f.svg?logo=arxiv" height="21px"></a> -->
 
-Welcome to the official repository for the SGI-Bench!
+Welcome to the official repository for the SGI-Bench! 👏
 
 </div>
 
@@ -32,7 +30,7 @@ Scientist-aligned benchmark for evaluating Scientific General Intelligence (SGI)
 ---
 
 ## 🔬 What is Scientific General Intelligence (SGI)?
-SGI denotes an AI system that can autonomously navigate the full, iterative cycle of scientific inquiry—Deliberation, Conception, Action, and Perception—with the versatility and proficiency of a human scientist. SGI‑Bench operationalizes this definition via four scientist‑aligned task families: deep research, idea generation, AI‑assisted experiments (dry/wet), and multimodal experimental reasoning.
+SGI denotes an AI system that can autonomously navigate the full, iterative cycle of scientific inquiry—Deliberation, Conception, Action, and Perception—with the versatility and proficiency of a human scientist. SGI‑Bench operationalizes this definition via four scientist‑aligned task families: scientific deep research, idea generation, dry/wet experiments, and multimodal experimental reasoning.
 
 ---
 
@@ -42,10 +40,10 @@ SGI denotes an AI system that can autonomously navigate the full, iterative cycl
   <img src="assets/pipeline.png" alt="SGI-Bench Pipeline" width="850">
 </p>
 
-- Deliberation (Deep Research): Multi‑hop retrieval, synthesis, and meta‑analysis style reasoning.
-- Conception (Idea Generation): Structured ideation and multi‑dimensional comparative evaluation.
-- Action (Dry/Wet Experiment): Code/simulation and lab protocol generation and verification.
-- Perception (Multimodal Reasoning): Process/observation/simulation/experiment/visualization image reasoning.
+- **Deliberation (Scientific Deep Research)**: Multi‑hop retrieval, synthesis, and meta‑analysis style reasoning.
+- **Conception (Idea Generation)**: Structured ideation and multi‑dimensional comparative evaluation.
+- **Action (Dry/Wet Experiment)**: Code generation, lab protocol development and verification.
+- **Perception (Experimental Reasoning)**: Process/observation/simulation/experiment/visualization image reasoning.
 
 Grounded in the Practical Inquiry Model (PIM), SGI‑Bench treats science as an iterative cycle linking deliberation, conception, action and perception. Under this lens, SGI captures the capacity to integrate knowledge retrieval, idea formation, action execution, and interpretation into a unified loop of inquiry.
 
@@ -57,10 +55,10 @@ Grounded in the Practical Inquiry Model (PIM), SGI‑Bench treats science as an 
   <img src="assets/subjects.png" alt="Scientist-Aligned Data Construction" width="850">
 </p>
 
-- Raw Corpus: Expert‑curated texts/images across 10 domains, inspired by Science’s 125 Big Questions.
-- Question Construction: 100+ graduate/PhD annotators with continuous expert‑in‑the‑loop review.
-- Data Cleaning: Rules + model checks + expert QA to ensure executability and unique answers.
-- Difficulty Filtering: Removes samples solved by >50% strong LLMs to maintain high challenge.
+- **Raw Corpus**: Expert‑curated texts/images across 10 domains, inspired by Science’s 125 Big Questions.
+- **Question Construction**: 100+ Master's and PhD holders with continuous expert‑in‑the‑loop review.
+- **Data Cleaning**: Rules + model checks + expert QA to ensure executability and unique answers.
+- **Difficulty Filtering**: Removes samples solved by >50% strong LLMs to maintain high challenge.
 
 Result: High‑fidelity, scientist‑aligned tasks that are authentic, challenging, and broadly representative.
 
@@ -72,10 +70,10 @@ Result: High‑fidelity, scientist‑aligned tasks that are authentic, challengi
   <img src="assets/evaluation-framework.png" alt="Agentic Evaluation Framework" width="850">
 </p>
 
-- Four Stages: Question Selection → Metric Customization → Predict & Eval → Report Generation
-- Tool Pool: Web search, PDF parser, Python interpreter, file reader, metric functions
-- Task Metrics: EM/SLA; Implementation Similarity; PassAll@k/SER; MCA/RV
-- Customizable: Add scientist‑aligned metrics (e.g., rigor, feasibility) on demand
+- **Four Stages**: Question Selection → Metric Customization → Predict & Eval → Report Generation
+- **Tool Pool**: Web search, PDF parser, Python interpreter, file reader, metric functions
+- **Task Metrics**: EM/SLA; Implementation Similarity; PassAll@k/SER; MCA/RV
+- **Customizable**: Add scientist‑aligned metrics (e.g., rigor, feasibility) on demand
 
 This agent‑based stack formalizes scoring into traceable stages, improves reproducibility, mitigates evaluator–model coupling bias, and yields actionable, scientist‑aligned insights.
 
@@ -87,12 +85,12 @@ This agent‑based stack formalizes scoring into traceable stages, improves repr
   <img src="assets/grpo_reward_curves.png" alt="TTRL Training Dynamics" width="850">
 </p>
 
-- Objective: Address no‑ground‑truth idea generation by optimizing novelty at test time with online retrieval as a moving baseline.
-- Reward Design:  
+- **Objective**: Address no‑ground‑truth idea generation by optimizing novelty at test time with online retrieval as a moving baseline.
+- **Reward Design**:  
   R = R_format + R_novelty  
   Enforce XML format and strict structure (e.g., &lt;think&gt;, &lt;answer&gt;); reward embedding dissimilarity from retrieved works, gated by thresholds.
-- Setup: GRPO on Qwen3‑8B (ms‑swift), G=8, high temperature, bfloat16, online retrieval n=4.
-- Dynamics: Format reward saturates quickly; novelty steadily increases. Average novelty improved from 49.36 → 62.06 without labels.
+- **Setup**: GRPO on Qwen3‑8B (ms‑swift), G=8, high temperature, bfloat16, online retrieval n=4.
+- **Dynamics**: Format reward saturates quickly; novelty steadily increases. Average novelty improved from 49.36 → 62.06 without labels.
 
 TTRL converts open‑ended ideation into measurable test‑time optimization and extends to multi‑objective rewards (rigor, feasibility, safety, cost).
 
