@@ -29,6 +29,25 @@ Scientist-aligned benchmark for evaluating Scientific General Intelligence (SGI)
 
 ---
 
+## 🆕 Latest News
+
+
+🚩 **Updates** (2025-12-19) SGI-Bench is adapted to [VLMEvalKit](https://github.com/open-compass/VLMEvalKit/pull/1358) and [SciEvalKit](https://github.com/InternScience/SciEvalKit), both of which are highly efficient and comprehensive evaluation toolkits.
+
+🎤 **Talk** (2025-12-18) We are invited to give a talk on *large language model evaluation* at the [AI Insight Talk](https://www.bilibili.com/video/BV16yqdBnE82/?share_source=copy_web&vd_source=7b9d898a8c3bbebf65c411956ed7f8ce) jointly organized by [OpenMMLab](https://openmmlab.com/), [Zhihu](https://www.zhihu.com/), and [ModelScope](https://www.modelscope.cn/).
+
+🚩 **Updates** (2025-12-12) We evaluate the newly released `GPT-5.2-Pro` on SGI-Bench.
+
+<details>
+<summary>👉 More News (Click to Expand)</summary>
+
+🚩 **Updates** (2025-12-10) We update the paper [PDF](https://internscience.github.io/SGI-Page/paper.pdf) on the page.
+
+🚩 **Updates** (2025-12-03) We officially release the [data](https://huggingface.co/collections/InternScience/sgi-bench) and [code](https://github.com/InternScience/SGI-Bench) of SGI-Bench.
+</details>
+
+---
+
 ## 🔬 What is Scientific General Intelligence (SGI)?
 SGI denotes an AI system that can autonomously navigate the full, iterative cycle of scientific inquiry—Deliberation, Conception, Action, and Perception—with the versatility and proficiency of a human scientist. SGI‑Bench operationalizes this definition via four scientist‑aligned task families: scientific deep research, idea generation, dry/wet experiments, and multimodal experimental reasoning.
 
@@ -218,6 +237,18 @@ python sgi_score.py gpt-5.2-pro
 
 ## 📜 Citation
 
-```
+If you find this work helpful, please consider to **star🌟** this repo. Thanks for your support!
+
+[![InternScience/SGI-Bench Stargazers](https://reporoster.com/stars/InternScience/SGI-Bench)](https://github.com/InternScience/SGI-Bench/stargazers)
+
+```bib
 Coming soon...
 ```
+
+## 📱 Contact Us
+
+```
+xu_wanghan@sjtu.edu.cn
+```
+
+<p align="right"><a href="#top">🔝Back to top</a></p>
