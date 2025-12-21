@@ -241,9 +241,13 @@ If you find this work helpful, please consider to **star🌟** this repo. Thanks
 
 [![InternScience/SGI-Bench Stargazers](https://reporoster.com/stars/InternScience/SGI-Bench)](https://github.com/InternScience/SGI-Bench/stargazers)
 
+If you would like to cite our work, please use the following BibTeX.
+
 ```bib
 Coming soon...
 ```
+
+---
 
 ## 📱 Contact Us
 
