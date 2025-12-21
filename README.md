@@ -32,18 +32,18 @@ Scientist-aligned benchmark for evaluating Scientific General Intelligence (SGI)
 ## 🆕 Latest News
 
 
-🚩 **Updates** (2025-12-19) SGI-Bench is adapted to [VLMEvalKit](https://github.com/open-compass/VLMEvalKit/pull/1358) and [SciEvalKit](https://github.com/InternScience/SciEvalKit), both of which are highly efficient and comprehensive evaluation toolkits.
+🚩 **Update** (2025-12-19) SGI-Bench is adapted to [VLMEvalKit](https://github.com/open-compass/VLMEvalKit/pull/1358) and [SciEvalKit](https://github.com/InternScience/SciEvalKit), both of which are highly efficient and comprehensive evaluation toolkits.
 
 🎤 **Talk** (2025-12-18) We are invited to give a talk on *large language model evaluation* at the [AI Insight Talk](https://www.bilibili.com/video/BV16yqdBnE82/?share_source=copy_web&vd_source=7b9d898a8c3bbebf65c411956ed7f8ce) jointly organized by [OpenMMLab](https://openmmlab.com/), [Zhihu](https://www.zhihu.com/), and [ModelScope](https://www.modelscope.cn/).
 
-🚩 **Updates** (2025-12-12) We evaluate the newly released `GPT-5.2-Pro` on SGI-Bench.
+🚩 **Update** (2025-12-12) We evaluate the newly released `GPT-5.2-Pro` on SGI-Bench.
 
 <details>
 <summary>👉 More News (Click to Expand)</summary>
 
-🚩 **Updates** (2025-12-10) We update the paper [PDF](https://internscience.github.io/SGI-Page/paper.pdf) on the page.
+🚩 **Update** (2025-12-10) We update the paper [PDF](https://internscience.github.io/SGI-Page/paper.pdf) on the page.
 
-🚩 **Updates** (2025-12-03) We officially release the [data](https://huggingface.co/collections/InternScience/sgi-bench) and [code](https://github.com/InternScience/SGI-Bench) of SGI-Bench.
+🚩 **Update** (2025-12-03) We officially release the [data](https://huggingface.co/collections/InternScience/sgi-bench) and [code](https://github.com/InternScience/SGI-Bench) of SGI-Bench.
 </details>
 
 ---
