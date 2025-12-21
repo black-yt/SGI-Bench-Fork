@@ -253,7 +253,7 @@ Coming soon...
 
 - 💬 **GitHub Issues**: Please open an issue for bug reports or feature requests
 
-- 📧 **Email**: xu_wanghan@sjtu.edu.cn
+- 📧 **Email**: [xu_wanghan@sjtu.edu.cn](https://black-yt.github.io/)
 
 - 🤝 **Community**: 
 
