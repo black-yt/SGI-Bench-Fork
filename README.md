@@ -3,10 +3,10 @@
 </div>
 
 <!-- <p align="center">
-  <a href="https://arxiv.org/pdf/2512.16969"><b>Paper</b></a> ·
-  <a href="https://github.com/InternScience/SGI-Bench"><b>GitHub</b></a> ·
   <a href="https://internscience.github.io/SGI-Page/"><b>Page</b></a> ·
+  <a href="https://arxiv.org/pdf/2512.16969"><b>Paper</b></a> ·
   <a href="https://huggingface.co/collections/InternScience/sgi-bench"><b>HuggingFace</b></a>
+  <a href="https://github.com/InternScience/SGI-Bench"><b>GitHub</b></a> ·
 </p> -->
 
 <div align="center">
