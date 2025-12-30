@@ -238,10 +238,6 @@ python sgi_score.py gpt-5.2-pro
 
 ## 📜 Citation
 
-If you find this work helpful, please consider to **star🌟** this [repo](https://github.com/InternScience/SGI-Bench). Thanks for your support!
-
-[![InternScience/SGI-Bench Stargazers](https://reporoster.com/stars/InternScience/SGI-Bench)](https://github.com/InternScience/SGI-Bench/stargazers)
-
 If you would like to cite our work, please use the following BibTeX.
 
 ```bib
@@ -266,5 +262,13 @@ If you would like to cite our work, please use the following BibTeX.
 <p align="center">
   <img src="https://raw.githubusercontent.com/InternScience/SGI-Bench/main/assets/wechat.jpg" alt="WeChat" width="200">
 </p>
+
+## 🌟 Star History
+
+If you find this work helpful, please consider to **star🌟** this [repo](https://github.com/InternScience/SGI-Bench). Thanks for your support!
+
+[![InternScience/SGI-Bench Stargazers](https://reporoster.com/stars/InternScience/SGI-Bench)](https://github.com/InternScience/SGI-Bench/stargazers)
+
+[![Star History Chart](https://api.star-history.com/svg?repos=InternScience/SGI-Bench,TIGER-AI-Lab/MMLU-Pro,MMMU-Benchmark/MMMU,idavidrein/gpqa,SuperGPQA/SuperGPQA&type=date&legend=top-left)](https://www.star-history.com/#InternScience/SGI-Bench&TIGER-AI-Lab/MMLU-Pro&MMMU-Benchmark/MMMU&idavidrein/gpqa&SuperGPQA/SuperGPQA&type=date&legend=top-left)
 
 <p align="right"><a href="#top">🔝Back to top</a></p>
