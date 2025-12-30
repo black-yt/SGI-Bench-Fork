@@ -265,7 +265,7 @@ If you would like to cite our work, please use the following BibTeX.
 
 ## 🌟 Star History
 
-If you find this work helpful, please consider to **star🌟** this [repo](https://github.com/InternScience/SGI-Bench). Thanks for your support!
+If you find this work helpful, please consider to **star⭐** this [repo](https://github.com/InternScience/SGI-Bench). Thanks for your support! 🤩
 
 [![InternScience/SGI-Bench Stargazers](https://reporoster.com/stars/InternScience/SGI-Bench)](https://github.com/InternScience/SGI-Bench/stargazers)
 
