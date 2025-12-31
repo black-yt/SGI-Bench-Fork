@@ -2,7 +2,7 @@ import json
 import os
 import sys
 sys.path.append('.')
-from utils import VLM, muti_thread
+from utils import VLM, muti_thread, memoize
 from datasets import load_dataset
 
 dataset = load_dataset("InternScience/SGI-Reasoning")
@@ -31,6 +31,7 @@ Your final output **must** include both **the reasoning** and **the final answer
     """.strip()
 
 
+@memoize
 def get_answer(ques_dict: dict):
     prompt = CONTEXT + "\n\n"
     prompt += "Question:\n" + ques_dict['question'] + "\n\n"

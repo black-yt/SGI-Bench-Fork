@@ -2,7 +2,7 @@ import json
 import os
 import sys
 sys.path.append('.')
-from utils import LLM, muti_thread
+from utils import LLM, muti_thread, memoize
 from datasets import load_dataset
 import re
 from typing import Dict, Any
@@ -145,6 +145,8 @@ example = {
     "ExpectedOutcome": "The proposed framework outperforms existing mainstream methods in comprehensive performance (accuracy, robustness, and efficiency) across multiple datasets, particularly in scenarios with uneven data distribution and cross-scenario migration. It also enhances model interpretability through a dynamic feature interaction mechanism, providing effective support for practical business decision-making."
 }
 
+
+@memoize
 def get_answer(ques_dict: dict):
     try:
         prompt = ques_dict['question']+f"""\n\n### Example:

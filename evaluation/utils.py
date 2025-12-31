@@ -13,6 +13,7 @@ import ast
 import re
 from functools import wraps
 import threading
+import inspect
 
 
 def muti_thread(inp_list, function, max_workers=100):
@@ -108,6 +109,138 @@ def timeout_limit(timeout=None):
     return decorator
 
 
+###################################################
+def read_all_jsonl(folder_path):
+    all_data = []
+    for filename in os.listdir(folder_path):
+        if filename.endswith('.jsonl'):
+            file_path = os.path.join(folder_path, filename)
+            with open(file_path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if line:  # 忽略空行
+                        data = json.loads(line)
+                        all_data.append(data)
+    return all_data
+
+
+empty_answer_dict = {
+    "SGI_DeepResearch": {
+        "model_answer_with_thinking": "None",
+        "model_answer": "None"
+    },
+    "SGI_IdeaGeneration": {
+        "generated_data":{
+            "Idea": "None",
+            "ImplementationSteps": "None",
+            "ImplementationOrder": "None",
+            "Dataset": "None",
+            "EvaluationMetrics": "None",
+            "ExpectedOutcome": "None"
+        }
+    },
+    "SGI_DryExperiment": {
+        "model_answer": "None"
+    },
+    "SGI_WetExperiment": {
+        "model_answer": "None"
+    },
+    "SGI_Reasoning": {
+        "model_answer": "None"
+    }
+}
+human_answer = read_all_jsonl("/mnt/shared-storage-user/xuwanghan/projects/SuperSFE/SGI-Bench-Fork/human_test/01")
+human_dict = {}
+for item in human_answer:
+    idx: str = item["idx"]
+    if idx.startswith("SGI_DeepResearch_"):
+        human_dict[idx] = {
+            "model_answer_with_thinking": item["analysis_answer"],
+            "model_answer": extract_final_answer(item["analysis_answer"])
+        }
+    elif idx.startswith("SGI_IdeaGeneration_"):
+        human_dict[idx] = {
+            "generated_data":{
+                "Idea": item["Idea"],
+                "ImplementationSteps": item["ImplementationSteps"],
+                "ImplementationOrder": item["ImplementationOrder"],
+                "Dataset": item["Dataset"],
+                "EvaluationMetrics": item["EvaluationMetrics"],
+                "ExpectedOutcome": item["ExpectedOutcome"]
+            }
+        }
+    elif idx.startswith("SGI_DryExperiment_"):
+        human_dict[idx] = {
+            "model_answer": item["completed_code"]
+        }
+    elif idx.startswith("SGI_WetExperiment_"):
+        human_dict[idx] = {
+            "model_answer": item["experimental_procedure"]
+        }
+    elif idx.startswith("SGI_Reasoning_"):
+        human_dict[idx] = {
+            "model_answer": item["analysis_answer"]
+        }
+print(f"[Load {len(human_dict)} answer]")
+
+
+def save_code(ques_dict: dict):
+    with open('/mnt/shared-storage-user/xuwanghan/projects/SuperSFE/SGI-Bench-Fork/evaluation/task_3_dry_experiment/model_name.txt', 'r', encoding='utf-8') as f:
+        model_name = f.read()
+    incomplete_functions = ques_dict['incomplete_functions']
+    main_code = ques_dict['incomplete_main_code']
+    answer = ques_dict["model_answer"]
+    
+    for incomplete_function in incomplete_functions:
+        try:
+            main_code = replace_function(main_code, answer, incomplete_function)
+        except:
+            pass
+    
+    for unit_test_idx in range(5):
+        save_path = os.path.join('task_3_dry_experiment/codes', ques_dict['idx'], f"unit_test_{unit_test_idx}", f"main_[{model_name.replace('/', '')}].py")
+        with open(save_path, 'w', encoding='utf-8') as f:
+            f.write(main_code)
+
+    ques_dict['model_code'] = main_code
+    return ques_dict
+
+
+def memoize(func):
+    history_dict = human_dict
+    
+    sig = inspect.signature(func)
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # 将传入的参数绑定到签名上
+        bound_args = sig.bind(*args, **kwargs)
+        bound_args.apply_defaults()
+        
+        # 获取 idx 的值
+        ques_dict = bound_args.arguments.get('ques_dict')
+        idx: str = ques_dict["idx"]
+        if idx in history_dict:
+            print(f"--- [History Hit] idx: {idx} ---")
+            history_cache = history_dict[idx]
+        else:
+            history_cache = empty_answer_dict[idx[:idx.rfind("_")]]
+        ques_dict.update(history_cache)
+
+        if idx.startswith("SGI_DryExperiment_"):
+            ques_dict = save_code(ques_dict)
+        
+        return ques_dict
+    
+        raise ValueError(f"No answer [{idx}]")
+
+        # 运行原函数并存入 history
+        result = func(*args, **kwargs)
+        history[idx] = result
+        return result
+
+    return wrapper
+###################################################
 
 class LLM:
     def __init__(self, model='gpt-4.1', **kwargs):

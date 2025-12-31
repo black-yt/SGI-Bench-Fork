@@ -2,12 +2,14 @@ import json
 import os
 import sys
 sys.path.append('.')
-from utils import LLM, AnswerPaser, muti_thread, extract_final_answer, replace_function
+from utils import LLM, AnswerPaser, muti_thread, extract_final_answer, replace_function, memoize
 from datasets import load_dataset
 
 dataset = load_dataset("InternScience/SGI-DryExperiment")
 save_dir = './task_3_dry_experiment/logs'
 model_name = 'gpt-4.1'
+with open('/mnt/shared-storage-user/xuwanghan/projects/SuperSFE/SGI-Bench-Fork/evaluation/task_3_dry_experiment/model_name.txt', 'w', encoding='utf-8') as f:
+    f.write(model_name)
 discipline = "['all']"
 discipline_list = ['astronomy', 'chemistry', 'earth', 'energy', 'information', 'life', 'material', 'mathematics', 'neuroscience', 'physics']
 if len(sys.argv) > 1:
@@ -50,6 +52,7 @@ def minus(a, b):
 """
 
 
+@memoize
 def get_answer(ques_dict: dict):
     question = ques_dict['question']
     incomplete_functions = ques_dict['incomplete_functions']

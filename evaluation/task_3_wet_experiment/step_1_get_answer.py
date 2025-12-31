@@ -2,7 +2,7 @@ import json
 import os
 import sys
 sys.path.append('.')
-from utils import LLM, AnswerPaser, muti_thread, extract_final_answer
+from utils import LLM, AnswerPaser, muti_thread, extract_final_answer, memoize
 from datasets import load_dataset
 
 dataset = load_dataset("InternScience/SGI-WetExperiment")
@@ -67,6 +67,7 @@ metrics = <Calculate metrics>(
 """
 
 
+@memoize
 def get_answer(ques_dict: dict):
     question = ques_dict['question']
     
