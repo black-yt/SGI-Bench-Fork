@@ -8,8 +8,6 @@ from datasets import load_dataset
 dataset = load_dataset("InternScience/SGI-DryExperiment")
 save_dir = './task_3_dry_experiment/logs'
 model_name = 'gpt-4.1'
-with open('/mnt/shared-storage-user/xuwanghan/projects/SuperSFE/SGI-Bench-Fork/evaluation/task_3_dry_experiment/model_name.txt', 'w', encoding='utf-8') as f:
-    f.write(model_name)
 discipline = "['all']"
 discipline_list = ['astronomy', 'chemistry', 'earth', 'energy', 'information', 'life', 'material', 'mathematics', 'neuroscience', 'physics']
 if len(sys.argv) > 1:

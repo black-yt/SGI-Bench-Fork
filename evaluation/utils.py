@@ -14,6 +14,7 @@ import re
 from functools import wraps
 import threading
 import inspect
+import sys
 
 
 def muti_thread(inp_list, function, max_workers=100):
@@ -149,7 +150,9 @@ empty_answer_dict = {
         "model_answer": "None"
     }
 }
-human_answer = read_all_jsonl("/mnt/shared-storage-user/xuwanghan/projects/SuperSFE/SGI-Bench-Fork/human_test/01")
+if len(sys.argv) > 1:
+    model_name = sys.argv[1]
+human_answer = read_all_jsonl(f"../human_test/{model_name}")
 human_dict = {}
 for item in human_answer:
     idx: str = item["idx"]
@@ -185,8 +188,7 @@ print(f"[Load {len(human_dict)} answer]")
 
 
 def save_code(ques_dict: dict):
-    with open('/mnt/shared-storage-user/xuwanghan/projects/SuperSFE/SGI-Bench-Fork/evaluation/task_3_dry_experiment/model_name.txt', 'r', encoding='utf-8') as f:
-        model_name = f.read()
+    global model_name
     incomplete_functions = ques_dict['incomplete_functions']
     main_code = ques_dict['incomplete_main_code']
     answer = ques_dict["model_answer"]
@@ -293,9 +295,9 @@ class LLM:
         # -----------------------------
         # Neither works → fail init
         # -----------------------------
-        raise RuntimeError(
-            f"Model '{self.model}' supports neither chat.completions nor responses API."
-        )
+        # raise RuntimeError(
+        #     f"Model '{self.model}' supports neither chat.completions nor responses API."
+        # )
 
 
     @timeout_limit(5*60)
@@ -380,9 +382,9 @@ class VLM:
         # -----------------------------
         # Neither works → fail init
         # -----------------------------
-        raise RuntimeError(
-            f"Model '{self.model}' supports neither chat.completions nor responses API."
-        )
+        # raise RuntimeError(
+        #     f"Model '{self.model}' supports neither chat.completions nor responses API."
+        # )
 
 
     def b64_encode_image(self, img):
